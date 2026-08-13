@@ -23,7 +23,7 @@ swift run eject
 - `Enter`：選択中のドライブを取り出す
 - `Esc`：終了
 
-ドライブ一覧は自動的に更新されるため、起動後の接続、マウント、切断、アンマウントも画面へ反映されます。複数ドライブがある場合は各項目を列ごとに揃えて表示します。最後のドライブを正常に取り出すと、アプリケーションは自動的に終了します。
+ドライブ一覧は自動的に更新されるため、起動後の接続、マウント、切断、アンマウントも画面へ反映されます。複数ドライブがある場合は各項目を列ごとに揃えて表示します。起動時にマウント済み外部ドライブがない場合、または起動後に全ドライブがアンマウントされた場合は、`マウントされている外部ドライブはありません。` と通常のコマンドラインへ表示して終了します。最後のドライブを正常に取り出した場合も同様です。
 
 ## コマンドライン操作
 
@@ -42,6 +42,20 @@ eject -e /dev/disk4
 ```
 
 引数を付けずに `eject` を実行すると対話画面を開きます。対象ドライブの識別子は `--list` または `-l` で確認できます。
+
+## 対応言語
+
+メッセージはmacOSで設定された優先言語に従って自動的に切り替わります。英語、日本語、中国語（簡体字）、スペイン語、フランス語に対応し、それ以外の言語では英語を使用します。
+
+コマンドごとに言語を明示する場合は、`EJECT_LANG` を指定します。
+
+```sh
+EJECT_LANG=en eject --help
+EJECT_LANG=ja eject --list
+EJECT_LANG=zh eject --list
+EJECT_LANG=es eject --help
+EJECT_LANG=fr eject --help
+```
 
 ## ドライブ検出と取り出しの仕組み
 
@@ -67,7 +81,7 @@ eject -e /dev/disk4
 Developer ID Application証明書、Developer ID Installer証明書、`notarytool` のKeychainプロファイルを設定済みの場合は、次を実行します。
 
 ```sh
-./scripts/sign-and-notarize.sh 0.1.0
+./scripts/sign-and-notarize.sh 0.1.1
 ```
 
 Releaseビルド、実行ファイルの署名、PKGの作成と署名、Appleへの提出、公証完了待ち、公証ログ取得、チケット添付、Gatekeeperによる最終検証まで行います。
@@ -75,7 +89,7 @@ Releaseビルド、実行ファイルの署名、PKGの作成と署名、Apple�
 Appleへ提出せず、署名済みPKGの作成と検証だけを行う場合：
 
 ```sh
-./scripts/sign-and-notarize.sh --prepare-only 0.1.0
+./scripts/sign-and-notarize.sh --prepare-only 0.1.1
 ```
 
 既定の署名設定：

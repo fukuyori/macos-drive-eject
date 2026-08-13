@@ -1,4 +1,5 @@
 import Darwin
+import EjectCore
 import Foundation
 
 enum Key {
@@ -16,13 +17,14 @@ enum TerminalError: LocalizedError {
     case couldNotEnableRawMode
 
     var errorDescription: String? {
+        let text = LocalizedText()
         switch self {
         case .notInteractive:
-            return "対話型のターミナルから起動してください。"
+            return text.terminalNotInteractive
         case .couldNotReadSettings:
-            return "ターミナル設定を読み取れませんでした。"
+            return text.terminalReadFailed
         case .couldNotEnableRawMode:
-            return "ターミナルをキー入力モードへ切り替えられませんでした。"
+            return text.terminalRawModeFailed
         }
     }
 }

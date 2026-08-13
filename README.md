@@ -23,7 +23,7 @@ Controls:
 - `Enter`: Eject the selected drive
 - `Esc`: Quit
 
-The drive list refreshes automatically, so drives connected, mounted, disconnected, or unmounted after launch are reflected in the interface. Columns remain aligned when multiple drives are shown. The application exits automatically when the last drive is successfully ejected.
+The drive list refreshes automatically, so drives connected, mounted, disconnected, or unmounted after launch are reflected in the interface. Columns remain aligned when multiple drives are shown. If no mounted external drive exists at launch, or if every drive later becomes unmounted, the application prints `マウントされている外部ドライブはありません。` and exits. This also applies after the last drive is successfully ejected.
 
 ## Command-line usage
 
@@ -42,6 +42,20 @@ eject -e /dev/disk4
 ```
 
 Running `eject` without arguments opens the interactive interface. Use `--list` or `-l` to find the identifier of a drive.
+
+## Languages
+
+Messages automatically follow the preferred language configured in macOS. English, Japanese, Simplified Chinese, Spanish, and French are supported. Unsupported languages fall back to English.
+
+To select a language explicitly for a single command, set `EJECT_LANG`:
+
+```sh
+EJECT_LANG=en eject --help
+EJECT_LANG=ja eject --list
+EJECT_LANG=zh eject --list
+EJECT_LANG=es eject --help
+EJECT_LANG=fr eject --help
+```
 
 ## How drive detection and ejection work
 
@@ -67,7 +81,7 @@ The executable is written to `dist/eject`.
 If the Developer ID Application certificate, Developer ID Installer certificate, and `notarytool` Keychain profile are configured, run:
 
 ```sh
-./scripts/sign-and-notarize.sh 0.1.0
+./scripts/sign-and-notarize.sh 0.1.1
 ```
 
 The script performs the release build, signs the executable, creates and signs a PKG installer, submits it to Apple's notary service, waits for acceptance, downloads the notarization log, staples the ticket, and performs final Gatekeeper validation.
@@ -75,7 +89,7 @@ The script performs the release build, signs the executable, creates and signs a
 To create and validate a signed PKG without submitting it to Apple:
 
 ```sh
-./scripts/sign-and-notarize.sh --prepare-only 0.1.0
+./scripts/sign-and-notarize.sh --prepare-only 0.1.1
 ```
 
 Default signing configuration:

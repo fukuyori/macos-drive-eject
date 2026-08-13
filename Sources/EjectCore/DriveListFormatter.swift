@@ -13,11 +13,17 @@ public struct DriveListItem: Equatable, Sendable {
 public struct DriveListFormatter {
     public init() {}
 
-    public func rows(for items: [DriveListItem]) -> [String] {
+    public func rows(
+        for items: [DriveListItem],
+        language: AppLanguage = .current
+    ) -> [String] {
         guard !items.isEmpty else { return [] }
 
+        let text = LocalizedText(language: language)
         let names = items.map { $0.drive.displayName }
-        let usages = items.map { $0.isInUse ? "[使用中]" : "[未使用]" }
+        let usages = items.map {
+            "[\($0.isInUse ? text.inUseLabel : text.notInUseLabel)]"
+        }
         let sizes = items.map { "[\($0.drive.formattedSize)]" }
         let nameWidth = names.map(terminalWidth).max() ?? 0
         let usageWidth = usages.map(terminalWidth).max() ?? 0

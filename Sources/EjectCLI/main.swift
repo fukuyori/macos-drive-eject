@@ -1,16 +1,7 @@
 import EjectCore
 import Foundation
 
-private let helpText = """
-使用方法:
-  eject                    対話画面を開く
-  eject --list | -l        外部ドライブの一覧を表示
-  eject --eject <disk>     指定したドライブを取り出す
-  eject -e <disk>          同上
-  eject --help | -h        このヘルプを表示
-
-<disk> には disk4 または /dev/disk4 のような識別子を指定します。
-"""
+private let localizedText = LocalizedText()
 
 private func writeStandardOutput(_ text: String) {
     FileHandle.standardOutput.write(Data(text.utf8))
@@ -23,7 +14,7 @@ private func writeStandardError(_ text: String) {
 private func listDrives(using diskUtility: DiskUtility) throws {
     let drives = try diskUtility.externalDrives()
     guard !drives.isEmpty else {
-        writeStandardOutput("マウントされている外部ドライブはありません。\n")
+        writeStandardOutput(localizedText.noMountedDrives + "\n")
         return
     }
 
@@ -51,7 +42,7 @@ private func ejectDrive(_ target: String, using diskUtility: DiskUtility) throws
     }
 
     try diskUtility.eject(drive)
-    writeStandardOutput("\(drive.displayName) (\(drive.devicePath)) を取り出しました。\n")
+    writeStandardOutput(localizedText.ejected(name: drive.displayName, path: drive.devicePath) + "\n")
 }
 
 private enum CommandExecutionError: LocalizedError {
@@ -61,9 +52,9 @@ private enum CommandExecutionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .driveNotFound(let target):
-            return "外部ドライブ \"\(target)\" が見つかりません。--list で識別子を確認してください。"
+            return localizedText.driveNotFound(target)
         case .driveInUse(let name):
-            return "\(name) は使用中です。ファイルやアプリを閉じてから再試行してください。"
+            return localizedText.driveInUse(name)
         }
     }
 }
@@ -80,7 +71,10 @@ struct EjectApp {
         try terminal.start()
         defer { terminal.stop() }
 
-        _ = refreshDrives()
+        if refreshDrives() && drives.isEmpty {
+            finishWithNoMountedDrives()
+            return
+        }
 
         while true {
             terminal.render(screen())
@@ -93,16 +87,26 @@ struct EjectApp {
                 moveSelection(by: 1)
             case .enter:
                 if ejectSelectedDrive() {
+                    finishWithNoMountedDrives()
                     return
                 }
             case .escape:
                 return
             case .refresh:
-                _ = refreshDrives()
+                if refreshDrives() && drives.isEmpty {
+                    finishWithNoMountedDrives()
+                    return
+                }
             case .other:
                 break
             }
         }
+    }
+
+    private func finishWithNoMountedDrives() {
+        // 全画面表示を閉じてから、通常のコマンドラインへ結果を残す。
+        terminal.stop()
+        writeStandardOutput(localizedText.noMountedDrives + "\n")
     }
 
     @discardableResult
@@ -132,7 +136,7 @@ struct EjectApp {
             drives = []
             usageByIdentifier = [:]
             selectedIndex = 0
-            message = "エラー: \(error.localizedDescription)"
+            message = "\(localizedText.errorPrefix): \(error.localizedDescription)"
             return false
         }
     }
@@ -149,22 +153,22 @@ struct EjectApp {
 
         if (try? diskUtility.isInUse(drive)) == true {
             usageByIdentifier[drive.identifier] = true
-            message = "\(drive.name) は使用中です。ファイルやアプリを閉じてから再試行してください。"
+            message = localizedText.driveInUse(drive.name)
             return false
         }
 
-        message = "\(drive.name) を取り出しています…"
+        message = localizedText.ejecting(name: drive.name)
         terminal.render(screen())
 
         do {
             try diskUtility.eject(drive)
-            message = "\(drive.name) を取り出しました。"
+            message = localizedText.ejected(name: drive.name)
             // diskutil の一覧には、取り出し直後のドライブが短時間残ることがある。
             // 取り出し成功済みの識別子を除外して、画面へ戻さないようにする。
             let refreshed = refreshDrivesKeepingMessage(excluding: drive.identifier)
             return refreshed && drives.isEmpty
         } catch {
-            message = "取り出し失敗: \(error.localizedDescription)"
+            message = "\(localizedText.ejectionFailedPrefix): \(error.localizedDescription)"
             _ = refreshDrivesKeepingMessage()
             return false
         }
@@ -182,12 +186,12 @@ struct EjectApp {
 
     private func screen() -> String {
         var lines = [
-            "\u{001B}[1m外部ドライブの取り出し\u{001B}[0m",
+            "\u{001B}[1m\(localizedText.title)\u{001B}[0m",
             "",
         ]
 
         if drives.isEmpty {
-            lines.append("  マウントされている外部ドライブはありません。")
+            lines.append("  \(localizedText.noMountedDrives)")
         } else {
             let items = drives.map { drive in
                 DriveListItem(
@@ -209,7 +213,7 @@ struct EjectApp {
             lines.append(message)
             lines.append("")
         }
-        lines.append("↑/↓ 選択   Enter 取り出し   Esc 終了")
+        lines.append(localizedText.controls)
         return lines.joined(separator: "\r\n")
     }
 }
@@ -223,14 +227,14 @@ do {
         var app = EjectApp()
         try app.run()
     case .help:
-        writeStandardOutput(helpText + "\n")
+        writeStandardOutput(localizedText.help + "\n")
     case .list:
         try listDrives(using: diskUtility)
     case .eject(let target):
         try ejectDrive(target, using: diskUtility)
     }
 } catch let error as CommandLineOptionsError {
-    writeStandardError("eject: \(error.localizedDescription)\n詳しくは eject --help を実行してください。\n")
+    writeStandardError("eject: \(error.localizedDescription)\n\(localizedText.runHelp)\n")
     exit(2)
 } catch {
     writeStandardError("eject: \(error.localizedDescription)\n")

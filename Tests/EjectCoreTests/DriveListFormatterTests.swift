@@ -24,7 +24,7 @@ struct DriveListFormatterTests {
             ),
         ]
 
-        let rows = DriveListFormatter().rows(for: items)
+        let rows = DriveListFormatter().rows(for: items, language: .japanese)
 
         #expect(rows == [
             "UGREEN - CT1000P5SSD8  [未使用]  [1 TB]   /dev/disk4",

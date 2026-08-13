@@ -13,13 +13,14 @@ public enum CommandLineOptionsError: LocalizedError, Equatable {
     case unexpectedArguments
 
     public var errorDescription: String? {
+        let text = LocalizedText()
         switch self {
         case .unknownOption(let option):
-            return "不明なオプションです: \(option)"
+            return text.unknownOption(option)
         case .missingEjectTarget:
-            return "--eject または -e の後にドライブ識別子を指定してください。"
+            return text.missingEjectTarget
         case .unexpectedArguments:
-            return "同時に指定できない引数が含まれています。"
+            return text.unexpectedArguments
         }
     }
 }

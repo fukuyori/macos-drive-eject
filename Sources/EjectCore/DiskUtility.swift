@@ -6,13 +6,14 @@ public enum DiskUtilityError: LocalizedError {
     case ejectionCouldNotBeVerified(String)
 
     public var errorDescription: String? {
+        let text = LocalizedText()
         switch self {
         case .commandFailed(let message):
             return message
         case .invalidIdentifier(let identifier):
-            return "不正なドライブ識別子です: \(identifier)"
+            return text.invalidDriveIdentifier(identifier)
         case .ejectionCouldNotBeVerified(let identifier):
-            return "取り出しコマンドは完了しましたが、\(identifier) の全ボリュームがアンマウントされたことを10秒以内に確認できませんでした。安全を確認するまで物理的に取り外さないでください。"
+            return text.ejectionCouldNotBeVerified(identifier)
         }
     }
 }
@@ -143,7 +144,7 @@ public struct DiskUtility {
     private func errorMessage(from result: CommandResult) -> String {
         let stderr = String(decoding: result.stderr, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
         let stdout = String(decoding: result.stdout, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-        return [stderr, stdout].first { !$0.isEmpty } ?? "diskutil の実行に失敗しました。"
+        return [stderr, stdout].first { !$0.isEmpty } ?? LocalizedText().diskutilFailed
     }
 
     private func isVolumeMounted(_ identifier: String) throws -> Bool {

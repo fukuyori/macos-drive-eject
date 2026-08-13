@@ -6,7 +6,7 @@ public enum DiskListParserError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidPropertyList:
-            return "diskutil から受け取ったドライブ情報を解析できませんでした。"
+            return LocalizedText().diskListParsingFailed
         }
     }
 }
