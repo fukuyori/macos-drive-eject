@@ -1,6 +1,6 @@
 # eject
 
-English | [日本語](README.ja.md)
+English | [日本語](README.ja.md) | [Changelog](CHANGELOG.md)
 
 `eject` is a terminal application for safely ejecting external drives on macOS. It provides an interactive drive selector as well as commands suitable for shell scripts.
 
@@ -81,7 +81,7 @@ The executable is written to `dist/eject`.
 If the Developer ID Application certificate, Developer ID Installer certificate, and `notarytool` Keychain profile are configured, run:
 
 ```sh
-./scripts/sign-and-notarize.sh 0.2.0
+./scripts/sign-and-notarize.sh 0.2.1
 ```
 
 The script performs the release build, signs the executable, creates and signs a PKG installer, submits it to Apple's notary service, waits for acceptance, downloads the notarization log, staples the ticket, and performs final Gatekeeper validation.
@@ -89,7 +89,7 @@ The script performs the release build, signs the executable, creates and signs a
 To create and validate a signed PKG without submitting it to Apple:
 
 ```sh
-./scripts/sign-and-notarize.sh --prepare-only 0.2.0
+./scripts/sign-and-notarize.sh --prepare-only 0.2.1
 ```
 
 Default signing configuration:

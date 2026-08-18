@@ -13,7 +13,7 @@ INSTALLER_SIGNING_IDENTITY="${INSTALLER_SIGNING_IDENTITY:-Developer ID Installer
 CODE_SIGN_IDENTIFIER="${CODE_SIGN_IDENTIFIER:-com.fukuyori.eject}"
 PACKAGE_IDENTIFIER="${PACKAGE_IDENTIFIER:-com.fukuyori.eject.pkg}"
 NOTARY_TIMEOUT="${NOTARY_TIMEOUT:-30m}"
-RELEASE_VERSION="0.2.0"
+RELEASE_VERSION="0.2.1"
 VERSION_WAS_SET=false
 PREPARE_ONLY=false
 
@@ -22,8 +22,8 @@ usage() {
     echo "  $0 [--prepare-only] [VERSION]"
     echo
     echo "例:"
-    echo "  $0 0.2.0"
-    echo "  $0 --prepare-only 0.2.0"
+    echo "  $0 0.2.1"
+    echo "  $0 --prepare-only 0.2.1"
     echo
     echo "--prepare-only は署名とPKG作成まで行い、Appleへ提出しません。"
     echo

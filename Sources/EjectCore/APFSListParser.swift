@@ -3,6 +3,38 @@ import Foundation
 struct APFSVolumeReference: Equatable, Sendable {
     let identifier: String
     let name: String
+    let roles: [String]
+
+    var isSystemVolume: Bool {
+        roles.contains { $0.caseInsensitiveCompare("System") == .orderedSame }
+    }
+
+    var isDataVolume: Bool {
+        roles.contains { $0.caseInsensitiveCompare("Data") == .orderedSame }
+    }
+
+    func userFacingName(systemVolumes: [APFSVolumeReference]) -> String {
+        guard isDataVolume else { return name }
+
+        return systemVolumes.first { systemVolume in
+            name.caseInsensitiveCompare("\(systemVolume.name) - Data") == .orderedSame
+        }?.name ?? name
+    }
+
+    func shouldDisplay(hasMountedSystemVolume: Bool) -> Bool {
+        let normalizedRoles = Set(roles.map { $0.lowercased() })
+        let hiddenRoles: Set<String> = [
+            "preboot", "recovery", "update", "vm", "xart", "hardware"
+        ]
+
+        if !normalizedRoles.isDisjoint(with: hiddenRoles) {
+            return false
+        }
+        if hasMountedSystemVolume && isDataVolume {
+            return false
+        }
+        return true
+    }
 }
 
 struct APFSListParser {
@@ -51,7 +83,11 @@ struct APFSListParser {
             guard let identifier = volume["DeviceIdentifier"] as? String,
                   let name = volume["Name"] as? String,
                   !name.isEmpty else { return nil }
-            return APFSVolumeReference(identifier: identifier, name: name)
+            return APFSVolumeReference(
+                identifier: identifier,
+                name: name,
+                roles: volume["Roles"] as? [String] ?? []
+            )
         }
     }
 }

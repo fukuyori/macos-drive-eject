@@ -65,4 +65,28 @@ struct DiskListParserTests {
             try DiskListParser().parse(data)
         }
     }
+
+    @Test func omitsNamesOfUnmountedPartitions() throws {
+        let propertyList: [String: Any] = [
+            "AllDisksAndPartitions": [[
+                "DeviceIdentifier": "disk4",
+                "Size": 1_000_000,
+                "Partitions": [
+                    ["DeviceIdentifier": "disk4s1", "VolumeName": "EFI"],
+                    [
+                        "DeviceIdentifier": "disk4s2",
+                        "VolumeName": "VISIBLE",
+                        "MountPoint": "/Volumes/VISIBLE"
+                    ]
+                ]
+            ]]
+        ]
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: propertyList,
+            format: .xml,
+            options: 0
+        )
+
+        #expect(try DiskListParser().parse(data)[0].volumeNames == ["VISIBLE"])
+    }
 }

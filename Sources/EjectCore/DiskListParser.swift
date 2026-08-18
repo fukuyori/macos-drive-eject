@@ -58,6 +58,8 @@ public struct DiskListParser {
         func visit(_ value: Any) {
             if let item = value as? [String: Any] {
                 if let name = item["VolumeName"] as? String,
+                   let mountPoint = item["MountPoint"] as? String,
+                   !mountPoint.isEmpty,
                    !name.isEmpty,
                    !names.contains(name) {
                     names.append(name)

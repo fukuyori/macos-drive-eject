@@ -63,19 +63,36 @@ public struct DiskUtility {
             var volumeNames = drive.volumeNames
             var volumeIdentifiers = drive.volumeIdentifiers
             var mountPoints = drive.mountPoints
+            var mountedReferences: [(reference: APFSVolumeReference, mountPoint: String)] = []
+
             for reference in references {
-                if !volumeNames.contains(reference.name) {
-                    volumeNames.append(reference.name)
-                }
                 if !volumeIdentifiers.contains(reference.identifier) {
                     volumeIdentifiers.append(reference.identifier)
                 }
 
                 guard let info = try? run(arguments: ["info", "-plist", reference.identifier]),
                       info.status == 0,
-                      let mountPoint = DiskInfoParser().mountPoint(from: info.stdout),
-                      !mountPoints.contains(mountPoint) else { continue }
-                mountPoints.append(mountPoint)
+                      let mountPoint = DiskInfoParser().mountPoint(from: info.stdout) else {
+                    continue
+                }
+                mountedReferences.append((reference, mountPoint))
+                if !mountPoints.contains(mountPoint) {
+                    mountPoints.append(mountPoint)
+                }
+            }
+
+            let hasMountedSystemVolume = mountedReferences.contains {
+                $0.reference.isSystemVolume
+            }
+            let systemVolumes = references.filter(\.isSystemVolume)
+            for item in mountedReferences
+            where item.reference.shouldDisplay(
+                hasMountedSystemVolume: hasMountedSystemVolume
+            ) {
+                let name = item.reference.userFacingName(systemVolumes: systemVolumes)
+                if !volumeNames.contains(name) {
+                    volumeNames.append(name)
+                }
             }
 
             return Drive(

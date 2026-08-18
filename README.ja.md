@@ -1,6 +1,6 @@
 # eject
 
-[English](README.md) | 日本語
+[English](README.md) | 日本語 | [変更履歴](CHANGELOG.md)
 
 `eject` は、macOSのターミナル上で外部ドライブを安全に取り出すためのアプリケーションです。対話形式のドライブ選択画面に加え、シェルスクリプトから利用できるコマンドも提供します。
 
@@ -81,7 +81,7 @@ EJECT_LANG=fr eject --help
 Developer ID Application証明書、Developer ID Installer証明書、`notarytool` のKeychainプロファイルを設定済みの場合は、次を実行します。
 
 ```sh
-./scripts/sign-and-notarize.sh 0.2.0
+./scripts/sign-and-notarize.sh 0.2.1
 ```
 
 Releaseビルド、実行ファイルの署名、PKGの作成と署名、Appleへの提出、公証完了待ち、公証ログ取得、チケット添付、Gatekeeperによる最終検証まで行います。
@@ -89,7 +89,7 @@ Releaseビルド、実行ファイルの署名、PKGの作成と署名、Apple�
 Appleへ提出せず、署名済みPKGの作成と検証だけを行う場合：
 
 ```sh
-./scripts/sign-and-notarize.sh --prepare-only 0.2.0
+./scripts/sign-and-notarize.sh --prepare-only 0.2.1
 ```
 
 既定の署名設定：
