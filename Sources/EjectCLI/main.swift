@@ -62,9 +62,10 @@ private enum CommandExecutionError: LocalizedError {
 struct EjectApp {
     private let diskUtility = DiskUtility()
     private let terminal = Terminal()
+    private let selectionNavigator = DriveSelectionNavigator()
     private var drives: [Drive] = []
     private var usageByIdentifier: [String: Bool] = [:]
-    private var selectedIndex = 0
+    private var selectedIndex: Int?
     private var message: String?
 
     mutating func run() throws {
@@ -111,9 +112,9 @@ struct EjectApp {
 
     @discardableResult
     private mutating func refreshDrives(excluding identifier: String? = nil) -> Bool {
-        let selectedIdentifier = drives.indices.contains(selectedIndex)
-            ? drives[selectedIndex].identifier
-            : nil
+        let selectedIdentifier = selectedIndex.flatMap { index in
+            drives.indices.contains(index) ? drives[index].identifier : nil
+        }
 
         do {
             let refreshedDrives = try diskUtility.externalDrives()
@@ -123,19 +124,19 @@ struct EjectApp {
                     (drive.identifier, (try? diskUtility.isInUse(drive)) ?? false)
                 }
             )
-            if let selectedIdentifier,
-               let refreshedIndex = drives.firstIndex(where: {
-                   $0.identifier == selectedIdentifier
-               }) {
-                selectedIndex = refreshedIndex
-            } else {
-                selectedIndex = min(selectedIndex, max(0, drives.count - 1))
+            let usage = drives.map { usageByIdentifier[$0.identifier] == true }
+            let refreshedIndex = selectedIdentifier.flatMap { identifier in
+                drives.firstIndex(where: { $0.identifier == identifier })
             }
+            selectedIndex = selectionNavigator.normalizedSelection(
+                current: refreshedIndex,
+                usage: usage
+            )
             return true
         } catch {
             drives = []
             usageByIdentifier = [:]
-            selectedIndex = 0
+            selectedIndex = nil
             message = "\(localizedText.errorPrefix): \(error.localizedDescription)"
             return false
         }
@@ -143,16 +144,30 @@ struct EjectApp {
 
     private mutating func moveSelection(by offset: Int) {
         guard !drives.isEmpty else { return }
-        selectedIndex = (selectedIndex + offset + drives.count) % drives.count
+        let usage = drives.map { usageByIdentifier[$0.identifier] == true }
+        selectedIndex = selectionNavigator.movedSelection(
+            current: selectedIndex,
+            by: offset,
+            usage: usage
+        )
         message = nil
     }
 
     private mutating func ejectSelectedDrive() -> Bool {
-        guard drives.indices.contains(selectedIndex) else { return false }
+        guard let selectedIndex,
+              drives.indices.contains(selectedIndex),
+              usageByIdentifier[drives[selectedIndex].identifier] != true else {
+            return false
+        }
         let drive = drives[selectedIndex]
 
         if (try? diskUtility.isInUse(drive)) == true {
             usageByIdentifier[drive.identifier] = true
+            let usage = drives.map { usageByIdentifier[$0.identifier] == true }
+            self.selectedIndex = selectionNavigator.normalizedSelection(
+                current: selectedIndex,
+                usage: usage
+            )
             message = localizedText.driveInUse(drive.name)
             return false
         }
@@ -201,9 +216,10 @@ struct EjectApp {
             }
             let rows = DriveListFormatter().rows(for: items)
             for (index, row) in rows.enumerated() {
-                let cursor = index == selectedIndex ? "❯" : " "
-                let style = index == selectedIndex ? "\u{001B}[7m" : ""
-                let reset = index == selectedIndex ? "\u{001B}[0m" : ""
+                let isSelected = selectedIndex == index
+                let cursor = isSelected ? "❯" : " "
+                let style = isSelected ? "\u{001B}[7m" : ""
+                let reset = isSelected ? "\u{001B}[0m" : ""
                 lines.append("\(cursor) \(style)\(row)\(reset)")
             }
         }

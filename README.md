@@ -23,7 +23,7 @@ Controls:
 - `Enter`: Eject the selected drive
 - `Esc`: Quit
 
-The drive list refreshes automatically, so drives connected, mounted, disconnected, or unmounted after launch are reflected in the interface. Columns remain aligned when multiple drives are shown. If no mounted external drive exists at launch, or if every drive later becomes unmounted, the application prints `マウントされている外部ドライブはありません。` and exits. This also applies after the last drive is successfully ejected.
+The drive list refreshes automatically, so drives connected, mounted, disconnected, or unmounted after launch are reflected in the interface. Columns remain aligned when multiple drives are shown. Drives marked as in use cannot be selected or highlighted, and arrow-key navigation skips them. If every drive is in use, no row is highlighted. If no mounted external drive exists at launch, or if every drive later becomes unmounted, the application prints `マウントされている外部ドライブはありません。` and exits. This also applies after the last drive is successfully ejected.
 
 ## Command-line usage
 
@@ -81,7 +81,7 @@ The executable is written to `dist/eject`.
 If the Developer ID Application certificate, Developer ID Installer certificate, and `notarytool` Keychain profile are configured, run:
 
 ```sh
-./scripts/sign-and-notarize.sh 0.1.1
+./scripts/sign-and-notarize.sh 0.2.0
 ```
 
 The script performs the release build, signs the executable, creates and signs a PKG installer, submits it to Apple's notary service, waits for acceptance, downloads the notarization log, staples the ticket, and performs final Gatekeeper validation.
@@ -89,7 +89,7 @@ The script performs the release build, signs the executable, creates and signs a
 To create and validate a signed PKG without submitting it to Apple:
 
 ```sh
-./scripts/sign-and-notarize.sh --prepare-only 0.1.1
+./scripts/sign-and-notarize.sh --prepare-only 0.2.0
 ```
 
 Default signing configuration:
